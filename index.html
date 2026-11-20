@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="ledger.css">
 <title>Auction Inventory</title>
 </head>
 <body>
@@ -83,20 +83,21 @@
     <div class="sync" id="sync" role="status" aria-live="polite"></div>
     <div class="toolbar">
       <div class="chips" id="chips" role="group" aria-label="Filter by status"></div>
-      <input type="search" id="q" placeholder="Search item, Inv #, account" aria-label="Search items">
+      <input type="search" id="q" placeholder="Search item, Inv #, account, notes" aria-label="Search items">
       <select id="acct" aria-label="Filter by account"><option value="">All accounts</option></select>
-      <div class="sortbox">
-        <select id="sortSel" aria-label="Sort by"></select>
-        <button class="btn sm" id="dirBtn" data-act="dir" aria-label="Reverse sort order"></button>
-      </div>
       <span class="grow"></span>
-      <button class="btn" id="syncBtn" data-act="sync">Update now</button>
+      <button class="btn" id="syncBtn" data-act="sync" title="Read new Nellis emails from Gmail and add new wins and returns">Update now</button>
       <button class="btn primary" data-act="add" id="b-add">Add item</button>
       <button class="btn" data-act="csv">Export CSV</button>
     </div>
-    <div id="list"></div>
-    <div class="foot" id="foot"></div>
-    <p class="note">Paid is the all-in Nellis cost: price plus 15% buyer premium plus 8.25% tax. "est" marks a cost not yet matched to a receipt. Amazon price is what the linked Amazon page showed on the check date in the item notes. Returned items are left out of every total.</p>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"></tbody>
+        <tfoot><tr><td id="foot" colspan="10"></td></tr></tfoot>
+      </table>
+    </div>
+    <p class="note">Paid is the all-in Nellis cost: price plus 15% buyer premium plus 8.25% tax. "est" marks a cost not yet matched to a receipt. Amazon price is the price found on the linked Amazon page on the check date in the item notes. Returned items are left out of every total.</p>
   </main>
 </div>
 

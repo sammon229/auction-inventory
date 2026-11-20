@@ -1,6 +1,6 @@
 // Network-first shell cache. Never caches Supabase API calls.
-const C = "auc-shell-v1";
-const SHELL = ["./", "index.html", "app.css", "app.js", "config.js", "manifest.webmanifest", "icon.svg"];
+const C = "auc-shell-v2";
+const SHELL = ["./", "index.html", "ledger.css", "app.js", "config.js", "manifest.webmanifest", "icon.svg"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then((k) => Promise.all(k.filter((x) => x !== C).map((x) => caches.delete(x)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", (e) => {
