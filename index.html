@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://m.media-amazon.com https://images-na.ssl-images-amazon.com https://storage.googleapis.com https://images.nellisauction.com; connect-src https://probxqlzoqawenngzsuf.supabase.co; manifest-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#1f5f4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Auction Inventory">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="app.css">
+<title>Auction Inventory</title>
+</head>
+<body>
+<noscript>This app needs JavaScript.</noscript>
+
+<main class="auth" id="v-login" hidden>
+  <form class="panel" id="f-login" autocomplete="on">
+    <h1>Auction Inventory</h1>
+    <p class="sub">Team sign in</p>
+    <label for="l-email">Email</label>
+    <input id="l-email" type="email" autocomplete="username" required inputmode="email">
+    <label for="l-pass">Password</label>
+    <input id="l-pass" type="password" autocomplete="current-password" required>
+    <p class="err" id="l-err" role="alert"></p>
+    <button class="btn primary wide" type="submit" id="l-go">Sign in</button>
+    <button class="linkbtn" type="button" data-act="forgot">Forgot password?</button>
+  </form>
+</main>
+
+<main class="auth" id="v-setpw" hidden>
+  <form class="panel" id="f-setpw">
+    <h1>Set your password</h1>
+    <p class="sub">Use at least 12 characters.</p>
+    <label for="p-new">New password</label>
+    <input id="p-new" type="password" autocomplete="new-password" minlength="12" required>
+    <label for="p-new2">Repeat password</label>
+    <input id="p-new2" type="password" autocomplete="new-password" minlength="12" required>
+    <p class="err" id="p-err" role="alert"></p>
+    <button class="btn primary wide" type="submit">Save password</button>
+  </form>
+</main>
+
+<main class="auth" id="v-mfa" hidden>
+  <form class="panel" id="f-mfa">
+    <h1 id="m-title">Verification code</h1>
+    <div id="m-enroll" hidden>
+      <p class="sub">Scan this code with an authenticator app (Google Authenticator, Microsoft Authenticator, 1Password), then enter the 6 digit code.</p>
+      <img id="m-qr" alt="Authenticator setup QR code" width="180" height="180">
+      <p class="sub">Cannot scan? Enter this key in the app: <code id="m-secret"></code></p>
+    </div>
+    <p class="sub" id="m-ask">Enter the 6 digit code from your authenticator app.</p>
+    <label for="m-code">Code</label>
+    <input id="m-code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+    <p class="err" id="m-err" role="alert"></p>
+    <button class="btn primary wide" type="submit">Verify</button>
+    <button class="linkbtn" type="button" data-act="signout">Cancel and sign out</button>
+  </form>
+</main>
+
+<main class="auth" id="v-noaccess" hidden>
+  <div class="panel">
+    <h1>No access yet</h1>
+    <p class="sub">You are signed in as <b id="na-email"></b>, but you have no role in this app. Ask an admin to give you Viewer, Editor or Admin access.</p>
+    <button class="btn wide" data-act="signout">Sign out</button>
+  </div>
+</main>
+
+<div id="v-app" hidden>
+  <header class="top">
+    <h1>Auction Inventory</h1>
+    <span class="role" id="who"></span>
+    <span class="grow"></span>
+    <button class="btn sm" data-act="team" id="b-team" hidden>Team</button>
+    <button class="btn sm" data-act="audit" id="b-audit" hidden>History</button>
+    <button class="btn sm" data-act="signout">Sign out</button>
+  </header>
+  <main class="wrap">
+    <section class="strip" id="strip" aria-label="Totals"></section>
+    <div class="sync" id="sync" role="status" aria-live="polite"></div>
+    <div class="toolbar">
+      <div class="chips" id="chips" role="group" aria-label="Filter by status"></div>
+      <input type="search" id="q" placeholder="Search item, Inv #, account" aria-label="Search items">
+      <select id="acct" aria-label="Filter by account"><option value="">All accounts</option></select>
+      <div class="sortbox">
+        <select id="sortSel" aria-label="Sort by"></select>
+        <button class="btn sm" id="dirBtn" data-act="dir" aria-label="Reverse sort order"></button>
+      </div>
+      <span class="grow"></span>
+      <button class="btn" id="syncBtn" data-act="sync">Update now</button>
+      <button class="btn primary" data-act="add" id="b-add">Add item</button>
+      <button class="btn" data-act="csv">Export CSV</button>
+    </div>
+    <div id="list"></div>
+    <div class="foot" id="foot"></div>
+    <p class="note">Paid is the all-in Nellis cost: price plus 15% buyer premium plus 8.25% tax. "est" marks a cost not yet matched to a receipt. Amazon price is what the linked Amazon page showed on the check date in the item notes. Returned items are left out of every total.</p>
+  </main>
+</div>
+
+<div id="toast" aria-live="polite"></div>
+<img id="zoom" alt="">
+
+<dialog id="dSell" aria-labelledby="hSell"><h3 id="hSell">Mark sold</h3><span class="sub" id="sellTitle"></span>
+  <div class="row2"><div><label for="sPrice">Sale price $</label><input id="sPrice" type="number" step="0.01" min="0" inputmode="decimal"></div>
+  <div><label for="sDate">Sale date</label><input id="sDate" type="date"></div></div>
+  <div class="row2"><div><label for="sChan">Channel</label><select id="sChan"><option>eBay</option><option>Facebook Marketplace</option><option>Amazon</option><option>Local / cash</option><option>Other</option></select></div>
+  <div><label for="sFees">Fees $</label><input id="sFees" type="number" step="0.01" min="0" value="0" inputmode="decimal"></div></div>
+  <label for="sShip">Shipping cost $</label><input id="sShip" type="number" step="0.01" min="0" value="0" inputmode="decimal">
+  <div class="dfoot"><button class="btn" data-close="dSell">Cancel</button><button class="btn primary" data-act="doSell">Save sale</button></div></dialog>
+
+<dialog id="dUse" aria-labelledby="hUse"><h3 id="hUse">Mark used (no sale)</h3><span class="sub" id="useTitle"></span>
+  <label for="uType">Cost counts as</label>
+  <select id="uType"><option value="personal">Personal spending</option><option value="business">Business expense</option></select>
+  <label for="uDate">Date</label><input id="uDate" type="date">
+  <label for="uNote">What it was used for</label><input id="uNote" maxlength="200">
+  <div class="dfoot"><button class="btn" data-close="dUse">Cancel</button><button class="btn primary" data-act="doUse">Mark used</button></div></dialog>
+
+<dialog id="dRet" aria-labelledby="hRet"><h3 id="hRet">Mark returned</h3><span class="sub" id="retTitle"></span>
+  <div class="row2"><div><label for="rDate">Return date</label><input id="rDate" type="date"></div>
+  <div><label for="rRef">Refund received $ (optional)</label><input id="rRef" type="number" step="0.01" min="0" inputmode="decimal"></div></div>
+  <div class="dfoot"><button class="btn" data-close="dRet">Cancel</button><button class="btn primary" data-act="doRet">Mark returned</button></div></dialog>
+
+<dialog id="dEdit" aria-labelledby="eHead"><h3 id="eHead">Edit item</h3>
+  <label for="eTitle">Item title</label><input id="eTitle">
+  <div class="row2"><div><label for="eHammer">Price on Nellis $</label><input id="eHammer" type="number" step="0.01" min="0" inputmode="decimal"></div>
+  <div><label for="eCost">Real all-in cost $ (receipt)</label><input id="eCost" type="number" step="0.01" min="0" inputmode="decimal" placeholder="blank = computed"></div></div>
+  <label for="eAmz">Amazon link</label><input id="eAmz" placeholder="https://www.amazon.com/dp/..." inputmode="url">
+  <div class="row2"><div><label for="eRetail">Amazon price $</label><input id="eRetail" type="number" step="0.01" min="0" inputmode="decimal"></div>
+  <div><label for="eAcct">Account</label><input id="eAcct" placeholder="e.g. ddbigboyai@gmail.com"></div></div>
+  <div class="row2"><div><label for="eCond">Condition</label><input id="eCond"></div><div><label for="eInv">Inv # (new items)</label><input id="eInv"></div></div>
+  <label for="eImg">Picture URL (optional)</label><input id="eImg" placeholder="https://m.media-amazon.com/images/I/..." inputmode="url">
+  <label for="eLoc">Storage location</label><input id="eLoc">
+  <label for="eNotes">Notes</label><textarea id="eNotes" rows="3"></textarea>
+  <p class="err" id="eErr" role="alert"></p>
+  <div class="dfoot"><button class="btn danger" data-act="delAsk" id="eDel" hidden>Delete</button><span class="grow"></span><button class="btn" data-close="dEdit">Cancel</button><button class="btn primary" data-act="doEdit">Save</button></div></dialog>
+
+<dialog id="dTeam" aria-labelledby="hTeam"><h3 id="hTeam">Team access</h3>
+  <span class="sub">Admin: everything and manages people. Editor: add, edit, sold, used, return. Viewer: read only. Invite new people in Supabase (Authentication, Users, Invite) first, then give them a role here.</span>
+  <div id="teamList"></div>
+  <div class="row3"><div><label for="tEmail">Email</label><input id="tEmail" type="email" inputmode="email"></div>
+  <div><label for="tRole">Role</label><select id="tRole"><option value="viewer">Viewer</option><option value="editor">Editor</option><option value="admin">Admin</option></select></div>
+  <div class="end"><button class="btn primary" data-act="addMember">Give access</button></div></div>
+  <p class="err" id="tErr" role="alert"></p>
+  <div class="dfoot"><button class="btn" data-close="dTeam">Close</button></div></dialog>
+
+<dialog id="dAudit" aria-labelledby="hAudit"><h3 id="hAudit">Recent changes</h3><div id="auditList" class="auditlist"></div>
+  <div class="dfoot"><button class="btn" data-close="dAudit">Close</button></div></dialog>
+
+<dialog id="dConf" aria-labelledby="cHead"><h3 id="cHead">Are you sure?</h3><span class="sub" id="cText"></span>
+  <div class="dfoot"><button class="btn" data-close="dConf">Cancel</button><button class="btn primary" id="cOk">Confirm</button></div></dialog>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
